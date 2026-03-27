@@ -75,7 +75,7 @@ def banner():
     ╚═╝╚═╝  ╚═══╝ ╚════╝ ╚══════╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
 
      A N N E   F R A N K   I N J E C T O R
-     v6,000,000 - "Hiding payloads in your attic since 2026"
+     v1.0 - "Hiding payloads in your attic since 2026"
 
      She hides better than Anne in the annex...
      But your AV still finds her and calls the Windows Defender
