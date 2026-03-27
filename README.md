@@ -179,9 +179,10 @@ rundll32.exe annefrankinjector.dll,ctf
 
 Most of the code is not from me. Here are the original authors (now properly credited under the new project):
 
+```
 @ Excalibra         - Main developer, attic architect, and professional snitch-hater
 @ Maldevacademy     - https://maldevacademy.com
 @ SaadAhla          - https://github.com/SaadAhla/ntdlll-unhooking-collection
 @ VX-Underground    - https://github.com/vxunderground/VX-API/blob/main/VX-API/GetProcAddressDjb2.cpp
 @ klezVirus         - https://github.com/klezVirus/SysWhispers3
----
+```
