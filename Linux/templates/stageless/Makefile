@@ -43,10 +43,10 @@ COMMON_SRCS := \
 
 ifeq ($(FORMAT),DLL)
 	MAIN_SRC := main_dll.c
-	TARGET   := ctfloader.dll
+	TARGET   := afloader.dll
 else
 	MAIN_SRC := main.c
-	TARGET   := ctfloader.exe
+	TARGET   := afloader.exe
 endif
 
 C_SRCS := $(COMMON_SRCS) $(MAIN_SRC)
@@ -65,7 +65,7 @@ ASFLAGS := -f win64
 # ───────────────────────────────────────────────────────────────────────────────
 # 5. Flags (mirror original baseline)
 # ───────────────────────────────────────────────────────────────────────────────
-# Baseline flags from the original CTFPacker Makefile:
+# Baseline flags from the original AFPacker Makefile:
 #   -O0 -Wall -w -fms-extensions -fdeclspec -static
 # We keep them intact so behaviour matches the pre‑DLL build.
 CFLAGS_BASE  := -O0 -Wall -w -fms-extensions -fdeclspec -static
@@ -75,7 +75,7 @@ LIBS         := -lwinhttp -lntdll
 ifeq ($(FORMAT),DLL)
 	# DLL build: drop static CRT + create import‑lib
 	CFLAGS  := $(filter-out -static,$(CFLAGS_BASE)) -DCTF_AS_DLL
-	LDFLAGS := $(LDFLAGS_BASE) -shared -Wl,--out-implib,libctfloader.a
+	LDFLAGS := $(LDFLAGS_BASE) -shared -Wl,--out-implib,libafloader.a
 else
 	CFLAGS  := $(CFLAGS_BASE)
 	LDFLAGS := $(LDFLAGS_BASE)
@@ -110,4 +110,4 @@ $(ASM_OBJ): $(ASM_SRC)
 # 8. House‑keeping
 # ───────────────────────────────────────────────────────────────────────────────
 clean:
-	rm -f $(C_OBJS) $(ASM_OBJ) $(TARGET) libctfloader.a
+	rm -f $(C_OBJS) $(ASM_OBJ) $(TARGET) libafloader.a
