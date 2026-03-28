@@ -12,7 +12,7 @@ uint8_t aes_k[16] = { #-KEY_VALUE-# };
 uint8_t aes_i[16] = { #-IV_VALUE-# };
 
 
-extern __declspec(dllexport) int ctf()
+extern __declspec(dllexport) int af()
 {
 
     PBYTE		pEncPayload			= NULL;
