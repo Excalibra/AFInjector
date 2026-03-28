@@ -75,7 +75,7 @@ LIBS         := -lwinhttp -lntdll
 
 ifeq ($(FORMAT),DLL)
 	# DLL build: drop static CRT + create import‑lib
-	CFLAGS  := $(filter-out -static,$(CFLAGS_BASE)) -DCTF_AS_DLL
+	CFLAGS  := $(filter-out -static,$(CFLAGS_BASE)) -DAF_AS_DLL
 	LDFLAGS := $(LDFLAGS_BASE) -shared -Wl,--out-implib,libafloader.a
 else
 	CFLAGS  := $(CFLAGS_BASE)
