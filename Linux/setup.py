@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='annefrank_injector',    
     version='1.0',
-    description='Windows shellcode loader with persistence features (fork of CTFPacker)',
+    description='Windows shellcode loader with persistence features',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/Excalibra/AnneFrankInjector', 
