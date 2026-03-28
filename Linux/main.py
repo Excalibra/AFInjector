@@ -62,7 +62,7 @@ def main():
 
         cr_directory    = os.path.dirname(os.path.abspath(__file__))
         src_directory   = resources.files("templates").joinpath("staged")
-        dst_directory   = f'{cr_directory}/.ctfpacker'
+        dst_directory   = f'{cr_directory}/.afpacker'
 
         try:
             shutil.copytree(src_directory, dst_directory)
@@ -355,14 +355,14 @@ def main():
                         print(Colors.red("[!] PFX password not provided"))
                         sys.exit(1)
                     
-                    input_binary = "ctfloader.exe"
-                    signed_binary = "ctfloader_signed.exe"
+                    input_binary = "afloader.exe"
+                    signed_binary = "afloader_signed.exe"
 
                     os.system(f"cd '{dst_directory}' && make clean && make FORMAT=EXE")
-                    shutil.move(f"{dst_directory}/ctfloader.exe", f"ctfloader.exe")
+                    shutil.move(f"{dst_directory}/afloader.exe", f"afloader.exe")
 
-                    if os.path.exists("ctfloader_signed.exe"):
-                        os.remove("ctfloader_signed.exe")
+                    if os.path.exists("afloader_signed.exe"):
+                        os.remove("afloader_signed.exe")
 
                     subprocess.run([
                         f"osslsigncode",
@@ -384,7 +384,7 @@ def main():
                     
                     os.system(f"cd '{dst_directory}' && make clean && make FORMAT=EXE")
 
-                    shutil.move(f"{dst_directory}/ctfloader.exe", f"ctfloader.exe")
+                    shutil.move(f"{dst_directory}/afloader.exe", f"afloader.exe")
 
                     shutil.rmtree(dst_directory)
 
@@ -398,7 +398,7 @@ def main():
 
                 os.system(f"cd '{dst_directory}' && make clean && make FORMAT=DLL")
 
-                shutil.move(f"{dst_directory}/ctfloader.dll", f"ctfloader.dll")
+                shutil.move(f"{dst_directory}/afloader.dll", f"afloader.dll")
 
                 shutil.rmtree(dst_directory)
 
@@ -416,7 +416,7 @@ def main():
 
         cr_directory    = os.path.dirname(os.path.abspath(__file__))
         src_directory   = resources.files("templates").joinpath("stageless")
-        dst_directory   = f'{cr_directory}/.ctfpacker'
+        dst_directory   = f'{cr_directory}/.afpacker'
 
         try:
             shutil.copytree(src_directory, dst_directory)
@@ -689,14 +689,14 @@ def main():
                         print(Colors.red("[!] PFX password not provided"))
                         sys.exit(1)
 
-                    input_binary = "ctfloader.exe"
-                    signed_binary = "ctfloader_signed.exe"
+                    input_binary = "afloader.exe"
+                    signed_binary = "afloader_signed.exe"
 
                     os.system(f"cd '{dst_directory}' && make clean && make FORMAT=EXE")
-                    shutil.move(f"{dst_directory}/ctfloader.exe", f"ctfloader.exe")
+                    shutil.move(f"{dst_directory}/afloader.exe", f"afloader.exe")
 
-                    if os.path.exists("ctfloader_signed.exe"):
-                        os.remove("ctfloader_signed.exe")
+                    if os.path.exists("afloader_signed.exe"):
+                        os.remove("afloader_signed.exe")
 
                     subprocess.run([
                         f"osslsigncode",
@@ -718,7 +718,7 @@ def main():
                     
                     os.system(f"cd '{dst_directory}' && make clean && make FORMAT=EXE")
 
-                    shutil.move(f"{dst_directory}/ctfloader.exe", f"ctfloader.exe")
+                    shutil.move(f"{dst_directory}/afloader.exe", f"afloader.exe")
 
                     shutil.rmtree(dst_directory)
 
@@ -732,7 +732,7 @@ def main():
 
                 os.system(f"cd '{dst_directory}' && make clean && make FORMAT=DLL")
 
-                shutil.move(f"{dst_directory}/ctfloader.dll", f"ctfloader.dll")
+                shutil.move(f"{dst_directory}/afloader.dll", f"afloader.dll")
 
                 shutil.rmtree(dst_directory)
 
