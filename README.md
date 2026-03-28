@@ -122,12 +122,12 @@ After the basis installation, don't forget to install the python requirements ! 
 **Linux**:
 ```bash
 # Via pipx (preferred way)
-cd afpacker
+cd AnneFrankInjector
 python3 -m pipx install .
 # You can use afpacker globaly now
 
 # Via manual virtual environment
-cd afpacker
+cd AnneFrankInjector
 python3 -m venv env
 source env/bin/activate
 python3 -m pip install .
@@ -136,14 +136,14 @@ python3 -m pip install .
 deactivate
 
 # Old fashion
-cd afpacker
+cd AnneFrankInjector
 python3 -m pip install -r requirements.txt --break-system-packages
 python3 main.py -h
 ```
 **Windows**:
 ```powershell
 # Via pip
-cd afpacker
+cd AnneFrankInjector
 python3 -m pip install .
 
 # Done ! :)
