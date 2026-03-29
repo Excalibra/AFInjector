@@ -80,32 +80,77 @@ pacman -S mingw-w64-x86_64-clang make nasm
 
 ### Install AnneFrankInjector
 
-1. **Clone the repository** (or download the ZIP) and enter the folder:
+#### Linux (Kali / Debian‑based)
+
+1. **Clone the repository** and enter the folder:
 
    ```bash
    git clone https://github.com/Excalibra/AnneFrankInjector.git
    cd AnneFrankInjector
    ```
 
-2. **Install Python dependencies** (choose one method):
+2. **Create a virtual environment** and install dependencies:
 
-   - **Virtual environment (recommended)**  
-     ```bash
-     python3 -m venv env
-     source env/bin/activate      # Linux
-     env\Scripts\activate          # Windows
-     pip install -r requirements.txt
-     ```
+   ```bash
+   python3 -m venv env
+   source env/bin/activate
+   pip install -r Linux/requirements.txt
+   ```
 
-   - **Global installation (pipx)** – makes `afpacker` available system‑wide  
-     ```bash
-     pipx install .
-     ```
+3. **Run the GUI** (from the root folder):
 
-   - **Old‑fashioned**  
-     ```bash
-     pip install -r requirements.txt --break-system-packages
-     ```
+   ```bash
+   python af.py
+   ```
+
+   For command‑line usage, go into the `Linux` folder:
+
+   ```bash
+   cd Linux
+   python main.py -h
+   ```
+
+4. **Optional – global CLI installation** (makes `afpacker` available system‑wide):
+
+   ```bash
+   pipx install .
+   ```
+
+#### Windows
+
+1. **Clone the repository** and enter the folder:
+
+   ```cmd
+   git clone https://github.com/Excalibra/AnneFrankInjector.git
+   cd AnneFrankInjector
+   ```
+
+2. **Create a virtual environment** and install dependencies:
+
+   ```cmd
+   python -m venv env
+   env\Scripts\activate
+   pip install -r Windows\requirements.txt
+   ```
+
+3. **Run the GUI** (from the root folder):
+
+   ```cmd
+   python af.py
+   ```
+
+   For command‑line usage, go into the `Windows` folder:
+
+   ```cmd
+   cd Windows
+   python main.py -h
+   ```
+
+4. **Optional – global CLI installation** (makes `afpacker` available system‑wide):
+
+   ```cmd
+   pipx install .
+   ```
 
 > **Note:** The GUI (`af.py`) uses `tkinter` (built‑in with Python). No extra install needed.
 
