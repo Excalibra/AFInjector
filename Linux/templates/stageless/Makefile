@@ -36,17 +36,17 @@ FORMAT ?= EXE                  # { EXE | DLL }
 # 3. Source files
 # ───────────────────────────────────────────────────────────────────────────────
 COMMON_SRCS := \
-	api_hashing.c \
-	inject.c       \
-	unhook.c       \
-	whispers.c
+        api_hashing.c \
+        inject.c       \
+        unhook.c       \
+        whispers.c
 
 ifeq ($(FORMAT),DLL)
-	MAIN_SRC := main_dll.c
-	TARGET   := afloader.dll
+        MAIN_SRC := main_dll.c
+        TARGET   := afloader.dll
 else
-	MAIN_SRC := main.c
-	TARGET   := afloader.exe
+        MAIN_SRC := main.c
+        TARGET   := afloader.exe
 endif
 
 C_SRCS := $(COMMON_SRCS) $(MAIN_SRC)
@@ -73,12 +73,12 @@ LDFLAGS_BASE := -Wl,--disable-auto-import -s
 LIBS         := -lwinhttp -lntdll
 
 ifeq ($(FORMAT),DLL)
-	# DLL build: drop static CRT + create import‑lib
-	CFLAGS  := $(filter-out -static,$(CFLAGS_BASE)) -DAF_AS_DLL
-	LDFLAGS := $(LDFLAGS_BASE) -shared -Wl,--out-implib,libafloader.a
+        # DLL build: drop static CRT + create import‑lib
+        CFLAGS  := $(filter-out -static,$(CFLAGS_BASE)) -DAF_AS_DLL
+        LDFLAGS := $(LDFLAGS_BASE) -shared -Wl,--out-implib,libafloader.a
 else
-	CFLAGS  := $(CFLAGS_BASE)
-	LDFLAGS := $(LDFLAGS_BASE)
+        CFLAGS  := $(CFLAGS_BASE)
+        LDFLAGS := $(LDFLAGS_BASE)
 endif
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -89,25 +89,25 @@ endif
 all: $(TARGET)
 
 exe:
-	$(MAKE) FORMAT=EXE
+        $(MAKE) FORMAT=EXE
 
 dll:
-	$(MAKE) FORMAT=DLL
+        $(MAKE) FORMAT=DLL
 
 # ───────────────────────────────────────────────────────────────────────────────
 # 7. Linking & compilation rules
 # ───────────────────────────────────────────────────────────────────────────────
 $(TARGET): $(C_OBJS) $(ASM_OBJ)
-	$(CLANG) $(CFLAGS) $(LIBPATH) $^ $(LDFLAGS) $(LIBS) -o $@
+        $(CLANG) $(CFLAGS) $(LIBPATH) $^ $(LDFLAGS) $(LIBS) -o $@
 
 %.o: %.c
-	$(CLANG) $(CFLAGS) $(INCLUDE) -c $< -o $@
+        $(CLANG) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
 $(ASM_OBJ): $(ASM_SRC)
-	nasm $(ASFLAGS) $< -o $@
+        nasm $(ASFLAGS) $< -o $@
 
 # ───────────────────────────────────────────────────────────────────────────────
 # 8. House‑keeping
 # ───────────────────────────────────────────────────────────────────────────────
 clean:
-	rm -f $(C_OBJS) $(ASM_OBJ) $(TARGET) libafloader.a
+        rm -f $(C_OBJS) $(ASM_OBJ) $(TARGET) libafloader.a
