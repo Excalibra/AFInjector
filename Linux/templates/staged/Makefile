@@ -1,114 +1,40 @@
-###############################################################################
-# Makefile for Clang (MinGW) on Windows or cross-compiling from Linux
-# DO NOT MODIFY THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING
-###############################################################################
+# Makefile for AnneFrankInjector – auto includes all .c files
+# Uses cross-compiler x86_64-w64-mingw32-clang
 
-# ───────────────────────────────────────────────────────────────────────────────
-# 1. Toolchain – Clang/LLD cross‑targeting MinGW‑w64
-# ───────────────────────────────────────────────────────────────────────────────
-.SUFFIXES:
+CC = x86_64-w64-mingw32-clang
+CFLAGS = -O0 -Wall -w -fms-extensions -fdeclspec -static -I/usr/x86_64-w64-mingw32/include
+LDFLAGS = -L/usr/x86_64-w64-mingw32/lib -Wl,--disable-auto-import -s
+LIBS = -lwinhttp -lntdll -lm -lshell32
+NASM = nasm
+NASMFLAGS = -f win64
 
-TARGET_TRIPLE ?= x86_64-w64-mingw32
-
-CLANG_BIN := $(shell which $(TARGET_TRIPLE)-clang 2>/dev/null)
-
-ifeq ($(CLANG_BIN),)
-    CLANG_BIN := $(shell which clang 2>/dev/null)
-endif
-
-TOOLCHAIN_ROOT := $(shell dirname $(shell dirname $(CLANG_BIN)))
-
-CLANG      := $(CLANG_BIN) --target=$(TARGET_TRIPLE) -fuse-ld=lld
-INCLUDE    := -I$(TOOLCHAIN_ROOT)/$(TARGET_TRIPLE)/include
-LIBPATH    := -L$(TOOLCHAIN_ROOT)/$(TARGET_TRIPLE)/lib
-
-GCC_WIN32_PATH := $(shell find $(TOOLCHAIN_ROOT) -type d -name "*win32" | head -n 1)
-ifneq ($(GCC_WIN32_PATH),)
-    LIBPATH += -L$(GCC_WIN32_PATH)
-endif
-
-# ───────────────────────────────────────────────────────────────────────────────
-# 2. Build format selector (EXE is default)
-# ───────────────────────────────────────────────────────────────────────────────
-FORMAT ?= EXE                  # { EXE | DLL }
-
-# ───────────────────────────────────────────────────────────────────────────────
-# 3. Source files
-# ───────────────────────────────────────────────────────────────────────────────
-COMMON_SRCS := \
-	api_hashing.c \
-	download.c     \
-	inject.c       \
-	unhook.c       \
-	whispers.c
-
+ALL_C = $(wildcard *.c)
 ifeq ($(FORMAT),DLL)
-	MAIN_SRC := main_dll.c
-	TARGET   := afloader.dll
+    C_SRCS := $(ALL_C)
+    TARGET := afloader.dll
+    CFLAGS += -DAF_AS_DLL
+    LDFLAGS := -shared $(LDFLAGS)
 else
-	MAIN_SRC := main.c
-	TARGET   := afloader.exe
+    C_SRCS := $(filter-out main_dll.c, $(ALL_C))
+    TARGET := afloader.exe
 endif
 
-C_SRCS := $(COMMON_SRCS) $(MAIN_SRC)
-C_OBJS := $(C_SRCS:.c=.o)
+C_OBJS = $(C_SRCS:.c=.o)
+ASM_SRC = whispers-asm.x64.asm
+ASM_OBJ = whispers-asm.o
 
-# ───────────────────────────────────────────────────────────────────────────────
-# 4. Assembly helper (Whispers)
-# ───────────────────────────────────────────────────────────────────────────────
-ASM_SRC := whispers-asm.x64.asm
-ASM_OBJ := whispers-asm.o
-ASFLAGS := -f win64
-
-# ───────────────────────────────────────────────────────────────────────────────
-# 5. Flags
-# ───────────────────────────────────────────────────────────────────────────────
-# ───────────────────────────────────────────────────────────────────────────────
-# 5. Flags (mirror original baseline)
-# ───────────────────────────────────────────────────────────────────────────────
-# Baseline flags from the original AFPacker Makefile:
-#   -O0 -Wall -w -fms-extensions -fdeclspec -static
-# We keep them intact so behaviour matches the pre‑DLL build.
-CFLAGS_BASE  := -O0 -Wall -w -fms-extensions -fdeclspec -static
-LDFLAGS_BASE := -Wl,--disable-auto-import -s
-LIBS         := -lwinhttp -lntdll
-
-ifeq ($(FORMAT),DLL)
-	# DLL build: drop static CRT + create import‑lib
-	CFLAGS  := $(filter-out -static,$(CFLAGS_BASE)) -DAF_AS_DLL
-	LDFLAGS := $(LDFLAGS_BASE) -shared -Wl,--out-implib,libafloader.a
-else
-	CFLAGS  := $(CFLAGS_BASE)
-	LDFLAGS := $(LDFLAGS_BASE)
-endif
-
-# ───────────────────────────────────────────────────────────────────────────────
-# 6. Phony targets
-# ───────────────────────────────────────────────────────────────────────────────
-.PHONY: all exe dll clean
+.PHONY: all clean
 
 all: $(TARGET)
 
-exe:
-	$(MAKE) FORMAT=EXE
-
-dll:
-	$(MAKE) FORMAT=DLL
-
-# ───────────────────────────────────────────────────────────────────────────────
-# 7. Linking & compilation rules
-# ───────────────────────────────────────────────────────────────────────────────
 $(TARGET): $(C_OBJS) $(ASM_OBJ)
-	$(CLANG) $(CFLAGS) $(LIBPATH) $^ $(LDFLAGS) $(LIBS) -o $@
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) $(LIBS) -o $@
 
 %.o: %.c
-	$(CLANG) $(CFLAGS) $(INCLUDE) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(ASM_OBJ): $(ASM_SRC)
-	nasm $(ASFLAGS) $< -o $@
+	$(NASM) $(NASMFLAGS) $< -o $@
 
-# ───────────────────────────────────────────────────────────────────────────────
-# 8. House‑keeping
-# ───────────────────────────────────────────────────────────────────────────────
 clean:
-	rm -f $(C_OBJS) $(ASM_OBJ) $(TARGET) libafloader.a
+	rm -f $(C_OBJS) $(ASM_OBJ) $(TARGET)
