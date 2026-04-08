@@ -14,6 +14,7 @@ void junk_function(void) {
 
 void add_persistence_reg(void);
 void add_persistence_task(void);
+void add_persistence_startup(void);
 
 #define TARGET_PROCESS "#-TARGET_PROCESS-#"
 
