@@ -1,9 +1,6 @@
-# Makefile for AnneFrankInjector – auto includes all .c files
-# Uses cross-compiler x86_64-w64-mingw32-clang
-
 CC = x86_64-w64-mingw32-clang
 CFLAGS = -O0 -Wall -w -fms-extensions -fdeclspec -static -I/usr/x86_64-w64-mingw32/include
-LDFLAGS = -L/usr/x86_64-w64-mingw32/lib -Wl,--disable-auto-import -s
+LDFLAGS = -L/usr/x86_64-w64-mingw32/lib -Wl,--disable-auto-import -s -mwindows
 LIBS = -lwinhttp -lntdll -lm -lshell32
 NASM = nasm
 NASMFLAGS = -f win64
